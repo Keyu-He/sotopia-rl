@@ -10,7 +10,7 @@ from openai import OpenAI
 from tqdm import tqdm
 from tqdm.asyncio import tqdm_asyncio  # tqdm helper for async iterators
 
-from sotopia_rl.prompter.attribution_methods import ATTRIBUTION_METHOD_DICT
+from prompter.attribution_methods import ATTRIBUTION_METHOD_DICT
 
 client = OpenAI()
 

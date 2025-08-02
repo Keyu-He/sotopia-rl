@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Tuple
 
 from openai import OpenAI
 
-from sotopia_rl.prompter.generic_templates import (
+from prompter.generic_templates import (
     DIMENSION_DESCRIPTION_DICT,
     DIRECT_ATTRIBUTION_TEMPLATE,
     SCALE_GUIDELINE_DICT,

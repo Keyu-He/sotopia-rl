@@ -3,7 +3,7 @@ import sys
 sys.path.append("../../")
 import argparse
 
-from sotopia_rl.prompter.attribution_prompting import (
+from prompter.attribution_prompting import (
     parallel_generate_reward_attribution,
 )
 from sotopia_rl.utils.preprocess import add_score

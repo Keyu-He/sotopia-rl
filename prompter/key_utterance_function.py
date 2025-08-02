@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Tuple
 
 from openai import OpenAI
 
-from sotopia_rl.prompter.one_pass_instructions import ATTRIBUTION_INSTRUCTIONS_DICT
+from prompter.one_pass_instructions import ATTRIBUTION_INSTRUCTIONS_DICT
 
 REGEX = "^Utterance (?:[0-9]|[1-9][0-9]) by {agent}$"
 

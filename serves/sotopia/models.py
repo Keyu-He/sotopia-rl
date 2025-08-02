@@ -28,7 +28,7 @@ class RejectionSampler:
         self.max_length = max_length
         self.sft_model_vllm_api_url = sft_model_vllm_api_url  # Store vLLM API URL
 
-        self.reward_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.reward_device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
 
         self.tokenizer = AutoTokenizer.from_pretrained(reward_model_name)
         self.reward_model = self.load_reward_model(reward_model_path)

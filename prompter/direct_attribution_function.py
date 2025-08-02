@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Tuple
 
 from openai import OpenAI
 
-from sotopia_rl.prompter.one_pass_instructions import ATTRIBUTION_INSTRUCTIONS_DICT
+from prompter.one_pass_instructions import ATTRIBUTION_INSTRUCTIONS_DICT
 
 
 def openai_call(prompt: str, model: str = "gpt-3.5-turbo") -> str | None:

@@ -64,7 +64,11 @@ def main(data_dir: str, input_file: str, reward_output_file: str, sft_output_fil
         if utter_attrib == -1:
             reward = -1.0
         else:
-            reward = utter_attrib / 3 * goal_score
+            # print("DEBUG ─ attribution:", utter_attrib, type(utter_attrib))
+            if not isinstance(utter_attrib, dict):
+                reward = utter_attrib / 3 * goal_score
+            else:
+                reward = utter_attrib['reward']
         return reward
 
     sotopia_pi_utterance_reward = []
