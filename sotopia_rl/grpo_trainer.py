@@ -102,12 +102,31 @@ class SotopiaGRPOTrainer:
                 quantization_config=self.quant_config,
                 device_map=get_kbit_device_map(),
             )
-            self.policy = PeftModelForCausalLM.from_pretrained(
-                base_gen_policy,
-                self.args.policy_adapter_path,
-                is_trainable=True,
-                adapter_name="policy_adapter",
-            )
+            
+            # Handle first iteration when no policy adapter exists yet
+            
+            if self.args.policy_adapter_path and self.args.policy_adapter_path != "None":
+                # Load existing adapter (subsequent iterations)
+                self.policy = PeftModelForCausalLM.from_pretrained(
+                    base_gen_policy,
+                    self.args.policy_adapter_path,
+                    is_trainable=True,
+                    adapter_name="policy_adapter",
+                )
+            else:
+                # First iteration: create new LoRA adapter
+                from peft import LoraConfig, get_peft_model
+                
+                lora_config = LoraConfig(
+                    r=16,  # Low rank
+                    lora_alpha=32,  # LoRA scaling parameter
+                    target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
+                    lora_dropout=0.1,
+                    bias="none",
+                    task_type="CAUSAL_LM",
+                )
+                
+                self.policy = get_peft_model(base_gen_policy, lora_config)
         else:
             self.policy = AutoModelForCausalLM.from_pretrained(
                 self.args.model_name,
@@ -133,12 +152,32 @@ class SotopiaGRPOTrainer:
                 quantization_config=self.quant_config,
                 device_map=get_kbit_device_map(),
             )
-            self.reward_model = PeftModelForSequenceClassification.from_pretrained(
-                base_reward_model,
-                self.args.reward_adapter_path,
-                is_trainable=False,
-                adapter_name="value_adapter",
-            )
+            # Handle reward model adapter path (same logic as policy model)
+            if self.args.reward_adapter_path and self.args.reward_adapter_path != "None":
+                # Load existing reward adapter (subsequent iterations)
+                self.reward_model = PeftModelForSequenceClassification.from_pretrained(
+                    base_reward_model,
+                    self.args.reward_adapter_path,
+                    is_trainable=False,
+                    adapter_name="value_adapter",
+                )
+            else:
+                # First iteration: create new LoRA adapter for reward model
+                from peft import LoraConfig, get_peft_model
+                
+                lora_config = LoraConfig(
+                    r=16,  # Low rank
+                    lora_alpha=32,  # LoRA scaling parameter
+                    target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
+                    lora_dropout=0.1,
+                    bias="none",
+                    task_type="SEQ_CLS",  # Sequence classification
+                )
+                
+                self.reward_model = get_peft_model(base_reward_model, lora_config)
+                # Make reward model non-trainable (frozen)
+                for param in self.reward_model.parameters():
+                    param.requires_grad = False
         else:
             self.reward_model = AutoModelForSequenceClassification.from_pretrained(
                 self.args.model_name,
@@ -190,7 +229,7 @@ class SotopiaGRPOTrainer:
         )
 
         training_args = GRPOConfig(
-            disable_dropout=True,
+            # disable_dropout=True,
             max_prompt_length=4096,
             logging_steps=1,
             report_to="wandb",
@@ -198,12 +237,13 @@ class SotopiaGRPOTrainer:
             per_device_eval_batch_size=self.args.per_device_eval_batch_size,
             gradient_accumulation_steps=self.args.gradient_accumulation_steps,
             num_train_epochs=self.args.num_train_epochs,
+            max_steps=self.args.max_steps,
             learning_rate=self.args.learning_rate,
             output_dir=self.args.output_dir,
             save_steps=self.args.save_steps,
             num_generations=self.args.num_generations,
             log_completions=True,
-            wandb_log_unique_prompts=True,
+            # wandb_log_unique_prompts=True,
             beta=self.args.beta,
         )
 
